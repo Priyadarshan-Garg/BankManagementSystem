@@ -17,8 +17,6 @@ public class UserDAO {
              tx.commit();
         } catch (Exception e) {
             logger.error("Error while saving user {}", user.getUserName());
-            if (tx != null) tx.rollback();
-
             throw e;
         }
 
