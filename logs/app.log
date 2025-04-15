@@ -1,0 +1,2 @@
+20:52:45.268 [main] WARN  com.bankapp.util.Main - Checking whether the logger is working
+20:53:14.279 [main] ERROR com.bankapp.util.Main - Checking whether the logger is working
