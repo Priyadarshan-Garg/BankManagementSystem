@@ -17,7 +17,7 @@ public class HibernateUtil{
                 throw new RuntimeException(e);
             }
         }
-        public SessionFactory getSessionFactory(){
+        public static SessionFactory getSessionFactory(){
             return sessionFactory;
         }
     }

@@ -33,4 +33,13 @@ public class UserDAO {
         tx.commit();
         }
     }
+
+    public static User getUserByUsername(String username) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("FROM User WHERE userName = :uname", User.class)
+                    .setParameter("uname", username)
+                    .uniqueResult();
+        }
+    }
+
 }

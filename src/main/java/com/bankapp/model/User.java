@@ -9,7 +9,8 @@ import java.util.List;
 public class User {
     @Column(nullable = false)
     private String userName;
-
+    @Column(nullable = false)
+    private String password;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -57,6 +58,14 @@ public class User {
 
     public List<Account> getAccountList() {
         return accountList;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public void setAccountList(List<Account> accountList) {
