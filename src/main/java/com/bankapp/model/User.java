@@ -7,7 +7,7 @@ import java.util.List;
 @Entity
 @Table(name = "bank_user")
 public class User {
-    @Column(name = "userName",nullable = false)
+    @Column(name = "userNed ame",nullable = false)
     private String userName;
     @Column(name = "password",nullable = false)
     private String password;
