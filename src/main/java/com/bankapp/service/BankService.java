@@ -25,10 +25,14 @@ public class BankService {
 
     public void createNewAcc(double balance, Account.accountType type, User user) {
         Account account = new Account(balance, type, user);
-        UserDAO.saveOrUpdate(user);
+//        UserDAO.saveOrUpdate(user);
+//        AccountDAO.saveOrUpdate(account);
+//        user.getAccountList().add(account);
+        user.getAccountList().add(account);  // 👈 pehle jod
+        UserDAO.saveOrUpdate(user);          // phir save
         AccountDAO.saveOrUpdate(account);
+
         logger.info("Account created successfully by user{} with balance {} and type {}", user.getUserName(), balance, type);
-        user.getAccountList().add(account);
         return;
     }
 

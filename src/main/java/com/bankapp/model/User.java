@@ -7,9 +7,9 @@ import java.util.List;
 @Entity
 @Table(name = "bank_user")
 public class User {
-    @Column(nullable = false)
+    @Column(name = "userName",nullable = false)
     private String userName;
-    @Column(nullable = false)
+    @Column(name = "password",nullable = false)
     private String password;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,17 +20,24 @@ public class User {
     List<Account> authorisedAccounts = new ArrayList<>();
 
     //    private Account account;
-    @OneToMany(mappedBy = "primaryUser", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "primaryUser", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     // cuz one user could have more than 1 account many to one nahi cuz we are in user class so (one) user can have (many) accounts
             List<Account> accountList = new ArrayList<Account>();
 
     public User() {
+        this.userName = "userName";
+        this.password = "password";
+        this.address = "userAddress";
     }
-
-    public User(String userName, String address) {
+    public User(String userName,String password,String address) {
         this.userName = userName;
+        this.password = password;
         this.address = address;
     }
+//    public User(String userName, String address) {
+//        this.userName = userName;
+//        this.address = address;
+//    }
 
     public String getUserName() {
         return userName;

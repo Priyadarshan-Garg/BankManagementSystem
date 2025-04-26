@@ -8,36 +8,52 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UserDAO {
-    public static  final Logger logger = LoggerFactory.getLogger(UserDAO.class);
-    public static void saveOrUpdate(User user){
+    private static final Logger logger = LoggerFactory.getLogger(UserDAO.class);
+    
+    public static void saveOrUpdate(User user) {
         Transaction tx = null;
-        try( Session session = HibernateUtil.sessionFactory.openSession()){
+        try (Session session = HibernateUtil.sessionFactory.openSession()) {
             tx = session.beginTransaction();
             session.saveOrUpdate(user);
-             tx.commit();
+            tx.commit();
+            logger.info("User {} saved/updated successfully", user.getUserName());
         } catch (Exception e) {
-            logger.error("Error while saving user {}", user.getUserName());
+            if (tx != null && tx.getStatus().canRollback()) {
+                tx.rollback();
+            }
+            logger.error("Error while saving user {}", user.getUserName(), e);
             throw e;
         }
-
-
     }
-    public static void remove(User user){
+
+    public static void remove(User user) {
         Transaction tx = null;
-        try (Session session = HibernateUtil.sessionFactory.openSession()){
+        try (Session session = HibernateUtil.sessionFactory.openSession()) {
             tx = session.beginTransaction();
-        session.delete(user);
-        session.getTransaction().commit();
-        tx.commit();
+            session.delete(user);
+            tx.commit();
+            logger.info("User {} removed successfully", user.getUserName());
+        } catch (Exception e) {
+            if (tx != null && tx.getStatus().canRollback()) {
+                tx.rollback();
+            }
+            logger.error("Error while removing user {}", user.getUserName(), e);
+            throw e;
         }
     }
 
     public static User getUserByUsername(String username) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("FROM User WHERE userName = :uname", User.class)
+            User user = session.createQuery("FROM User WHERE userName = :uname", User.class)
                     .setParameter("uname", username)
                     .uniqueResult();
+            if (user == null) {
+                logger.debug("No user found with username: {}", username);
+            }
+            return user;
+        } catch (Exception e) {
+            logger.error("Error while fetching user with username: {}", username, e);
+            throw e;
         }
     }
-
 }

@@ -2,7 +2,9 @@ package com.bankapp.service;
 
 import com.bankapp.DAO.UserDAO;
 import com.bankapp.model.User;
+import com.bankapp.util.PasswordUtil;
 
+import java.io.StringReader;
 import java.util.Scanner;
 
 
@@ -15,7 +17,8 @@ public static User register(Scanner sc) {
 
     User user = new User();
     user.setUserName(username);
-    user.setPassword(password);
+    String hashPassword = PasswordUtil.encryptPassword(password);
+    user.setPassword(hashPassword);
 
     // Pehle check karo username unique hai kya
     if (UserDAO.getUserByUsername(username) != null) {

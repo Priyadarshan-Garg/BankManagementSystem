@@ -2,6 +2,7 @@ package com.bankapp.service;
 
 import com.bankapp.DAO.UserDAO;
 import com.bankapp.model.User;
+import com.bankapp.util.PasswordUtil;
 
 import java.util.Scanner;
 
@@ -13,7 +14,8 @@ public class LoginService {
         String password = sc.nextLine();
 
         User user = UserDAO.getUserByUsername(username);
-        if (user == null || !user.getPassword().equals(password)) {
+        String hashPassword  = PasswordUtil.encryptPassword(password);
+        if (user == null || !PasswordUtil.checkPassword(user.getPassword(),hashPassword)){
             System.out.println("Invalid credentials. Try again.");
             return login(sc);  // recursive call
         }
