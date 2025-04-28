@@ -7,10 +7,14 @@ import com.bankapp.model.Account;
 import com.bankapp.model.User;
 import com.bankapp.model.Transaction;
 import com.bankapp.util.*;
+import org.hibernate.LazyInitializationException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.transaction.Transactional;
+import java.util.List;
 
 
 public class BankService {
@@ -23,29 +27,42 @@ public class BankService {
         this.user = user;
     }
 
-    public void createNewAcc(double balance, Account.accountType type, User user) {
-        Account account = new Account(balance, type, user);
-//        UserDAO.saveOrUpdate(user);
-//        AccountDAO.saveOrUpdate(account);
-//        user.getAccountList().add(account);
-        user.getAccountList().add(account);  // 👈 pehle jod
-        UserDAO.saveOrUpdate(user);          // phir save
-        AccountDAO.saveOrUpdate(account);
 
-        logger.info("Account created successfully by user{} with balance {} and type {}", user.getUserName(), balance, type);
-        return;
+
+    public void createNewAcc(double balance, Account.accountType type, User user) {
+    org.hibernate.Transaction tx = null;
+    try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        tx = session.beginTransaction();
+        
+        // Refresh user with session
+        user = session.get(User.class, user.getId());
+        
+        Account account = new Account(balance, type, user);
+        user.addAccount(account);  // Using addAccount method instead of direct list access
+        
+        session.saveOrUpdate(user);
+        session.saveOrUpdate(account);
+        
+        tx.commit();
+        logger.info("Account created successfully by user {} with balance {} and type {}", 
+                   user.getUserName(), balance, type);
+    } catch (Exception e) {
+        if (tx != null && tx.isActive()) {
+            tx.rollback();
+        }
+        throw e;
     }
+}
 
     public void closeAccount(String acc_num) {
-        Account acc = new Account();
-        user.getAccountList().removeIf(account -> account.getAcc_num().equals(acc_num));
-
+            AccountDAO.remove(acc_num);
     }
 
     public void showAllAccounts(User user) {
-        for (Account account : user.getAccountList()) {
-            System.out.println(account.getAcc_num());
-        }
+            List<Account> accounts = AccountDAO.getAccount(user);
+            assert accounts != null;
+             System.out.println("Found " + accounts.size() + " accounts of user "+user.getUserName());
+            accounts.forEach(Account-> System.out.println(Account.getAcc_num()));
     }
 
     public void deposit(double amount, String accNum) {
@@ -70,33 +87,30 @@ public class BankService {
 
     }
 
-    public double ShowBalance(String accNum) throws NumberFormatException {
+    public String ShowBalance(String accNum) throws NumberFormatException {
         Account account = AccountDAO.getAccountByAccNum(accNum);
         if (account != null) {
-            return (double) Math.round(account.getBalance() * 100) / 100;
+            return String.format("%.2f",account.getBalance());
         }
 
-        return 0.0;
+        return "0.0";
     }
 
     public void withdraw(double amount, String accNum) {
-        if(amount<=0){
+        Account account = AccountDAO.getAccountByAccNum(accNum);
+        if(amount<=0 || amount>account.getBalance()){
             logger.warn("User tried withdraw unreal amount {}",amount);
-            System.out.println("Invalid amount");
+            System.out.println("Invalid amount or insufficient balance in account");
             return;
         }
-        Account account = AccountDAO.getAccountByAccNum(accNum);
         if (account.getAcc_num() != null) {
-            if (amount > account.getBalance()) {
+            if (amount < account.getBalance()) {
                 Transaction newTransaction = new Transaction(Transaction.TransactionType.withdraw, account, amount);
                 account.setBalance(account.getBalance() - amount);
                 AccountDAO.saveOrUpdate(account);
                 TransactionDAO.saveOrUpdate(newTransaction);
                 logger.info("Amount withdrawal successfully by user {} with amount {} from account {}",user.getUserName(),amount,accNum);
                 System.out.println("Amount withdrawal " + amount);
-            } else{
-                logger.warn("Insufficient amount in account {}",account.getBalance());
-                System.out.println("Insufficient amount");
             }
         }
 

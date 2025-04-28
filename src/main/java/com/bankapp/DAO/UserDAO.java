@@ -4,8 +4,12 @@ import com.bankapp.model.User;
 import com.bankapp.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.transaction.Transactional;
+
 
 public class UserDAO {
     private static final Logger logger = LoggerFactory.getLogger(UserDAO.class);
@@ -42,18 +46,37 @@ public class UserDAO {
         }
     }
 
+
+
+
     public static User getUserByUsername(String username) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            User user = session.createQuery("FROM User WHERE userName = :uname", User.class)
-                    .setParameter("uname", username)
-                    .uniqueResult();
-            if (user == null) {
-                logger.debug("No user found with username: {}", username);
-            }
+            // Debug ke liye print karein
+            System.out.println("Searching for user: " + username);
+            
+            String hql = "FROM User WHERE username = :username";
+            Query<User> query = session.createQuery(hql, User.class);
+            query.setParameter("username", username);
+            
+            // Debug ke liye result print karein
+            User user = query.uniqueResult();
+            System.out.println("Found user: " + (user != null ? "Yes" : "No"));
+            
             return user;
         } catch (Exception e) {
-            logger.error("Error while fetching user with username: {}", username, e);
-            throw e;
+            e.printStackTrace();
+            return null;
         }
+    }
+    public static int getUserById(String username){
+        int id = 0;
+        try(Session session = HibernateUtil.getSessionFactory().openSession()){
+            String hql = "From User WHERE userName = :username";
+             id =  session.createQuery(hql, User.class).setParameter("username", username).uniqueResult().getId();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return id;
     }
 }

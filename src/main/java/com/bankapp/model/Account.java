@@ -80,7 +80,7 @@ public class Account {
     }
 
     public String getAcc_num() {
-        return acc_num;
+        return this.acc_num;
     }
 
     public List<Transaction> getTransactionList() {
